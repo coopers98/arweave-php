@@ -1,0 +1,9 @@
+# Keep development-only files out of the Composer/Packagist dist tarball, so a
+# `composer require coopers98/arweave-php` ships only src/ + the runtime metadata.
+/tests           export-ignore
+/tools           export-ignore
+/docs            export-ignore
+/.github         export-ignore
+/phpunit.xml     export-ignore
+/.gitignore      export-ignore
+/.gitattributes  export-ignore

@@ -32,10 +32,19 @@ final class RsaPss
             throw new ArweaveException('Wallet JWK is not a usable RSA private key.');
         }
 
+        // Arweave fixes the RSA public exponent at 65537 ("AQAB"). Wallet enforces this,
+        // but RsaPss is constructable directly, so reject any other exponent here too.
+        if (isset($jwk['e']) && $jwk['e'] !== 'AQAB') {
+            throw new ArweaveException('RSA JWK has a non-Arweave public exponent (must be 65537 / "AQAB").');
+        }
+
         try {
             $key = RSA::loadFormat('JWK', (string) json_encode($jwk));
-        } catch (Throwable $e) {
-            throw new ArweaveException('Failed to load RSA JWK into phpseclib: '.$e->getMessage(), 0, $e);
+        } catch (Throwable) {
+            // Deliberately drop the caught exception: its message and stack-trace frame
+            // args carry the full private JWK, which a trace-logging framework would
+            // persist to disk. Throw a static message with no `previous` and no leak.
+            throw new ArweaveException('Failed to load the RSA JWK into phpseclib.');
         }
 
         if (! $key instanceof PrivateKey) {
@@ -48,7 +57,16 @@ final class RsaPss
     /** Sign a message with RSA-PSS (sha256, mgf1-sha256, salt 32). */
     public function sign(string $message): string
     {
-        return $this->configure($this->key)->sign($message);
+        $signature = self::configure($this->key)->sign($message);
+
+        // Defense-in-depth for an irreversible funds path: never hand back a signature
+        // we cannot verify against our own public key. Catches RSA faults / regressions
+        // before bytes leave the process. (This also exercises configure()'s PublicKey path.)
+        if (! self::configure($this->key->getPublicKey())->verify($message, $signature)) {
+            throw new ArweaveException('RSA-PSS self-verification failed after signing.');
+        }
+
+        return $signature;
     }
 
     /**

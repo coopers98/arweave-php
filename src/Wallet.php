@@ -47,6 +47,14 @@ final class Wallet implements SignerInterface
         }
 
         $this->owner = Base64Url::decode($jwk['n']);
+
+        // Arweave production wallets are 4096-bit; enforce a 2048-bit floor to reject
+        // trivially weak moduli. (Test fixtures use 2048-bit keys for speed, so the
+        // floor is set there rather than at the production 4096.)
+        if (strlen($this->owner) * 8 < 2048) {
+            throw new ArweaveException('Wallet RSA modulus is too small (minimum 2048 bits; Arweave wallets are 4096-bit).');
+        }
+
         $this->rsa = new RsaPss($jwk);
     }
 

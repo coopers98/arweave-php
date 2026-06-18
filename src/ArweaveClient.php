@@ -10,6 +10,7 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 /**
@@ -84,15 +85,14 @@ final class ArweaveClient
     /** Fetch published bytes by id (`GET /{id}`), or null if the gateway has no such object. */
     public function getData(string $id): ?string
     {
-        $request = $this->requests->createRequest('GET', "{$this->gateway}/{$id}");
-
-        try {
-            $response = $this->http->sendRequest($request);
-        } catch (ClientExceptionInterface $e) {
-            // The transport message can carry the full gateway URL (creds in path/query
-            // for authenticated gateways); keep it only on the chained previous exception.
-            throw new ArweaveException('Arweave gateway request failed.', 0, $e);
+        // The id is interpolated straight into the request URL — validate its shape
+        // (unpadded base64url, as Arweave ids are) so a caller-supplied value can't
+        // smuggle path/query segments into the gateway request.
+        if (! preg_match('/^[A-Za-z0-9_-]+$/', $id)) {
+            throw new ArweaveException('Invalid Arweave transaction id.');
         }
+
+        $response = $this->dispatch($this->requests->createRequest('GET', "{$this->gateway}/{$id}"));
 
         if ($response->getStatusCode() === 404) {
             return null;
@@ -107,13 +107,7 @@ final class ArweaveClient
 
     private function send(RequestInterface $request): string
     {
-        try {
-            $response = $this->http->sendRequest($request);
-        } catch (ClientExceptionInterface $e) {
-            // Keep the transport detail (possibly a creds-bearing URL) on the chained
-            // previous exception only — never in the public message.
-            throw new ArweaveException('Arweave gateway request failed.', 0, $e);
-        }
+        $response = $this->dispatch($request);
 
         $status = $response->getStatusCode();
         if ($status >= 400) {
@@ -123,6 +117,21 @@ final class ArweaveClient
         }
 
         return (string) $response->getBody();
+    }
+
+    /**
+     * Send a request, wrapping any PSR-18 transport failure in an {@see ArweaveException}
+     * whose public message carries no gateway URL — the underlying message (which can
+     * embed creds in the host/path/query for an authenticated gateway) stays only on the
+     * chained `previous` exception.
+     */
+    private function dispatch(RequestInterface $request): ResponseInterface
+    {
+        try {
+            return $this->http->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
+            throw new ArweaveException('Arweave gateway request failed.', 0, $e);
+        }
     }
 
     private static function discoverFactory(): RequestFactoryInterface&StreamFactoryInterface

@@ -22,11 +22,9 @@ PHP 8.2+ · ext-openssl · ext-hash · phpseclib ^3.0 · a PSR-18 client · MIT
 
 ## Install
 
-> **NOTE (pre-extraction):** the package name is `coopers98/arweave-php` (its eventual
-> Packagist identity, repo: `coopers98/arweave-php`). It is not published to Packagist yet —
-> inside the AgentImprint monorepo it is consumed via a Composer **path repository**. The PHP
-> namespace stays `AgentImprint\Arweave\` (namespace ≠ Packagist name). The line below applies
-> once it is published.
+> **NOTE:** Not published to Packagist yet — the `composer require` line below applies
+> once the first version is tagged and published. The PHP namespace is `AgentImprint\Arweave\`
+> (namespace ≠ Packagist name).
 
 ```bash
 composer require coopers98/arweave-php
@@ -89,7 +87,7 @@ interface SignerInterface {
 final class Transaction {
     public static function create(string $data, array $tags = []): self;          // [['name'=>..,'value'=>..]]
     public function setOwner(string $rawOwner): self;                             // raw modulus; exposed for golden-vector parity (sign() sets it for you)
-    public function signatureMessage(string $lastTx, string $reward): string;     // deep-hash; exposed for golden vectors
+    public function signatureMessage(string $reward, string $lastTx): string;     // deep-hash; exposed for golden vectors (reward, last_tx order matches sign())
     public function sign(Wallet $w, string $reward, string $lastTx): SignedTransaction;
     public function dataRoot(): string;                                           // raw 32-byte data_root ('' for empty)
     // attachSignature(): assemble against an externally-produced signature (HSM / parity tests)
@@ -138,14 +136,17 @@ composer install
 
 The shared parity helpers (`golden()`, `patternBytes()`) load via the phpunit bootstrap
 (`tests/bootstrap.php`) **and** Composer `autoload-dev.files`, so the suite runs identically
-under the package's own `vendor/bin/pest`, a root/monorepo binary, or plain `phpunit` — there
-is no binary-specific bootstrap that can silently skip the gate.
+under the package's own `vendor/bin/pest` or any outer Pest binary — there is no
+binary-specific bootstrap that can silently skip the gate. (Pest replaces the `phpunit`
+binary, so always run the suite via `pest`, not a bare `phpunit` invocation.)
 
 The **parity suite** asserts — byte-for-byte against `arweave-js` — the signature
 message, `data_root` (across chunk boundaries incl. multi-chunk), the transaction
 id, and the full serialized `POST /tx` JSON, and that an `arweave-js` signature
 validates against the message this library computes. Fixtures are committed and
-regenerated once with the dev-only Node script (Node is never a runtime dep):
+regenerated once with the dev-only Node script (Node is never a runtime dep). The
+trust anchor is pinned in `tools/package.json` (`arweave` **1.15.5**, exact) so the
+vectors are reproducible:
 
 ```bash
 cd tools && npm install && node generate-golden.cjs > ../tests/fixtures/golden.json
@@ -162,9 +163,11 @@ cd tools && node node_modules/arlocal/bin/index.js 1984 &
 ## Scope
 
 Signing / encoding / transport only — no wallet generation, no key storage, no
-funding. **Future scope** (the interfaces already allow it): an `Ans104DataItem`
-plus ed25519/secp256k1 `SignerInterface` implementations and a `Bundle` assembler,
-without disturbing the native-L1 core.
+funding. Transactions are **data-only**: `target` is always `""` and `quantity` is
+always `"0"` (no value transfer / no AR payments) — the library publishes bytes to
+the permaweb, it does not send AR between addresses. **Future scope** (the interfaces
+already allow it): an `Ans104DataItem` plus ed25519/secp256k1 `SignerInterface`
+implementations and a `Bundle` assembler, without disturbing the native-L1 core.
 
 ## License
 

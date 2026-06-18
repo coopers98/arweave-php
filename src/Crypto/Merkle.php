@@ -213,7 +213,13 @@ final class Merkle
         return hash('sha256', $data, true);
     }
 
-    /** 32-byte big-endian representation of a byte offset (arweave-js `intToBuffer`). */
+    /**
+     * 32-byte big-endian representation of a byte offset (arweave-js `intToBuffer`).
+     *
+     * Offsets are native PHP ints, so this assumes a 64-bit platform (PHP_INT_SIZE === 8).
+     * That bounds offsets at ~9.2e18, far below the 32-byte note's capacity and far above
+     * any practical Arweave data size — a 32-bit build would silently truncate large offsets.
+     */
     private static function intToBuffer(int $note): string
     {
         $buffer = array_fill(0, self::NOTE_SIZE, 0);

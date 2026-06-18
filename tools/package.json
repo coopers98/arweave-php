@@ -3,8 +3,9 @@
   "private": true,
   "description": "Dev-only: generates golden vectors from arweave-js for the PHP byte-parity suite. NOT a runtime dependency.",
   "version": "0.0.0",
+  "comment": "Versions are pinned exactly: the golden vectors are a byte-parity trust anchor, so the arweave-js (and ArLocal) version must be reproducible, not floating.",
   "dependencies": {
-    "arlocal": "^1.1.66",
-    "arweave": "^1.15.5"
+    "arlocal": "1.1.66",
+    "arweave": "1.15.5"
   }
 }

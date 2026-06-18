@@ -26,7 +26,7 @@ test('reproduces arweave-js transactions byte-for-byte', function () {
         $tx = Transaction::create($v['data_utf8'], $tags)->setOwner($owner);
 
         // GATE 1 — signature message (deep-hash over the canonical v2 field order).
-        $message = $tx->signatureMessage($v['last_tx'], $v['reward']);
+        $message = $tx->signatureMessage($v['reward'], $v['last_tx']);
         expect(bin2hex($message))->toBe($v['signatureMessage_hex'], "{$label}: signature message");
 
         // GATE 2 — data_root.
@@ -60,7 +60,7 @@ test('our message matches the golden one for the same field inputs', function ()
     $tags = array_map(fn ($t) => ['name' => $t['name'], 'value' => $t['value']], $v['tags']);
     $message = Transaction::create($v['data_utf8'], $tags)
         ->setOwner($owner)
-        ->signatureMessage($v['last_tx'], $v['reward']);
+        ->signatureMessage($v['reward'], $v['last_tx']);
 
     expect(bin2hex($message))->toBe($v['signatureMessage_hex']);
 });
@@ -77,7 +77,7 @@ test('a transaction we sign ourselves produces a signature that validates', func
     $lastTx = Base64Url::encode(str_repeat("\x01", 48));
 
     $tx = Transaction::create('locally-signed-bundle', $tags)->setOwner($wallet->owner());
-    $message = $tx->signatureMessage($lastTx, $reward);
+    $message = $tx->signatureMessage($reward, $lastTx);
     $signed = $tx->sign($wallet, $reward, $lastTx);
 
     $sigBytes = Base64Url::decode($signed->toGatewayJson()['signature']);

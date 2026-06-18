@@ -28,8 +28,8 @@ final class Transaction
 
     private string $dataRoot;
 
-    /** @var array{data_root: string, chunks: list<array{minByteRange:int, maxByteRange:int}>, proofs: list<array{offset:int, proof:string}>}|null */
-    private ?array $chunks;
+    /** @var array{data_root: string, chunks: list<array{minByteRange:int, maxByteRange:int}>, proofs: list<array{offset:int, proof:string}>} */
+    private array $chunks;
 
     /**
      * @param  string  $data  raw bytes to publish
@@ -90,9 +90,10 @@ final class Transaction
     /**
      * The canonical v2 signature message: deep-hash over the arweave-js field order
      * `[ "2", owner, target, quantity, reward, last_tx, tags[[name,value]], data_size, data_root ]`.
-     * `$lastTx` is the base64url anchor; `$reward` is the winston string.
+     * `$reward` is the winston string; `$lastTx` is the base64url anchor. Parameters follow
+     * the deep-hash field order (reward before last_tx), matching {@see sign()}.
      */
-    public function signatureMessage(string $lastTx, string $reward): string
+    public function signatureMessage(string $reward, string $lastTx): string
     {
         if ($this->owner === '') {
             throw new ArweaveException('Owner must be set before computing the signature message.');
@@ -130,7 +131,7 @@ final class Transaction
     {
         $this->setOwner($wallet->owner());
 
-        $message = $this->signatureMessage($lastTx, $reward);
+        $message = $this->signatureMessage($reward, $lastTx);
         $signature = $wallet->signer()->sign($message);
 
         return $this->assemble($this->owner, $signature, $reward, $lastTx);
@@ -160,7 +161,7 @@ final class Transaction
             dataSize: (string) strlen($this->data),
             dataRoot: $this->dataRoot,
             signature: $signature,
-            chunks: $this->chunks ?? ['data_root' => $this->dataRoot, 'chunks' => [], 'proofs' => []],
+            chunks: $this->chunks,
         );
     }
 }
