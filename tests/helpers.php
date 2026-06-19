@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /*
  * Test helpers for the parity suite, loaded via BOTH composer `autoload-dev.files`
- * and the phpunit bootstrap (tests/bootstrap.php) so they are available no matter
- * which test binary runs the suite (the package's own `vendor/bin/pest`, the root
- * binary, or plain phpunit). Each definition is guarded so the double registration
- * is a no-op. See r2-consolidated finding #6.
+ * and the bootstrap (tests/bootstrap.php) so they are available no matter which Pest
+ * binary runs the suite (the package's own `vendor/bin/pest` or an outer `pest`
+ * invoked from the repo root against this package's phpunit.xml). Each definition is
+ * guarded so the double registration is a no-op. See r2-consolidated finding #6.
  */
 
 if (! function_exists('golden')) {

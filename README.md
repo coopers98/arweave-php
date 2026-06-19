@@ -90,7 +90,7 @@ final class Transaction {
     public function signatureMessage(string $reward, string $lastTx): string;     // deep-hash; exposed for golden vectors (reward, last_tx order matches sign())
     public function sign(Wallet $w, string $reward, string $lastTx): SignedTransaction;
     public function dataRoot(): string;                                           // raw 32-byte data_root ('' for empty)
-    // attachSignature(): assemble against an externally-produced signature (HSM / parity tests)
+    public function attachSignature(string $rawOwner, string $signature, string $reward, string $lastTx): SignedTransaction; // assemble against an externally-produced signature (HSM / parity tests)
 }
 
 final class SignedTransaction {
@@ -114,8 +114,9 @@ final class ArweaveClient {                  // thin PSR-18 transport; throws Ar
 ### Custody (the hard rule)
 
 The core never reads env/files/secrets, never logs, and has no framework coupling.
-The wallet JWK enters by value; **the host app owns secret loading** (e.g.
-`SOVEREIGN_WALLET_SECRET`). HTTP is a PSR-18 client injected by the caller.
+The wallet JWK enters by value; **the host app owns secret loading** (e.g. from a
+secrets manager or an env var like `ARWEAVE_WALLET_JWK` — the library itself reads
+no env var). HTTP is a PSR-18 client injected by the caller.
 
 ## Crypto
 
@@ -146,10 +147,12 @@ id, and the full serialized `POST /tx` JSON, and that an `arweave-js` signature
 validates against the message this library computes. Fixtures are committed and
 regenerated once with the dev-only Node script (Node is never a runtime dep). The
 trust anchor is pinned in `tools/package.json` (`arweave` **1.15.5**, exact) so the
-vectors are reproducible:
+vectors are reproducible. The resolved transitive tree is pinned by the committed
+`tools/package-lock.json`, so use `npm ci` (not `npm install`) to install exactly the
+locked versions:
 
 ```bash
-cd tools && npm install && node generate-golden.cjs > ../tests/fixtures/golden.json
+cd tools && npm ci && node generate-golden.cjs > ../tests/fixtures/golden.json
 ```
 
 Live round-trip against **ArLocal v1.1.66** (mint → build+sign → `POST /tx` → mine

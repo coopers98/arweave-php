@@ -11,7 +11,6 @@ use AgentImprint\Arweave\Transaction;
  * the "owner must be set" precondition on signatureMessage(), and the Merkle::dataRoot()
  * convenience wrapper agreeing with generateTransactionChunks().
  */
-
 test('signatureMessage requires the owner to be set first', function () {
     // No setOwner()/sign() call, so the owner is still empty.
     Transaction::create('some data')->signatureMessage('1000000', '');

@@ -54,7 +54,16 @@ final class Merkle
         ];
     }
 
-    /** Convenience: just the raw 32-byte data_root. */
+    /**
+     * Convenience: just the raw 32-byte data_root for `$data`.
+     *
+     * NOTE for refactorers: this is NOT a drop-in for `Transaction::dataRoot()` on
+     * empty data. For `''` this returns the Merkle root of a single zero-length chunk
+     * (a non-empty 32-byte hash), whereas `Transaction::create('')->dataRoot()`
+     * deliberately returns `''` to match arweave-js's empty-data transaction (which
+     * sets `data_root` to the empty string, not the root of a zero-length chunk).
+     * Do not replace that transaction special case with this wrapper.
+     */
     public static function dataRoot(string $data): string
     {
         return self::generateTransactionChunks($data)['data_root'];

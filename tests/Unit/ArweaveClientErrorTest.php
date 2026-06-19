@@ -41,9 +41,7 @@ function throwingHttpClient(): ClientInterface
     {
         public function sendRequest(RequestInterface $request): ResponseInterface
         {
-            throw new class('cURL error: could not connect to https://user:s3cr3t@vault.example/price/1')
-                extends RuntimeException
-                implements ClientExceptionInterface {};
+            throw new class('cURL error: could not connect to https://user:s3cr3t@vault.example/price/1') extends RuntimeException implements ClientExceptionInterface {};
         }
     };
 }

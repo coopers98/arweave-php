@@ -19,8 +19,8 @@ use phpseclib3\Crypt\RSA;
  * ChunkProofParityTest). Skipped automatically unless an ArLocal node is reachable, so it
  * never runs (or needs a wallet/network) in offline CI.
  *
- *   cd packages/arweave-php/tools && node node_modules/arlocal/bin/index.js 1984 &
- *   cd packages/arweave-php && ./vendor/bin/pest --testsuite Integration
+ *   cd tools && node node_modules/arlocal/bin/index.js 1984 &
+ *   ./vendor/bin/pest --testsuite Integration
  */
 function arlocalUrl(): string
 {

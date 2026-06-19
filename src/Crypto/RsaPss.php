@@ -26,7 +26,7 @@ final class RsaPss
     private PrivateKey $key;
 
     /** @param array<string, mixed> $jwk decoded Arweave RSA JWK ({kty,n,e,d,p,q,dp,dq,qi}) */
-    public function __construct(array $jwk)
+    public function __construct(#[\SensitiveParameter] array $jwk)
     {
         if (($jwk['kty'] ?? null) !== 'RSA' || ! isset($jwk['n'], $jwk['d'])) {
             throw new ArweaveException('Wallet JWK is not a usable RSA private key.');

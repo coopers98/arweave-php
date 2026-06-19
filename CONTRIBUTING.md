@@ -31,11 +31,14 @@ JSON). It runs fully offline and must stay green on PHP 8.2 / 8.3 / 8.4.
 **Never edit it by hand** — regenerate it from the pinned trust anchor:
 
 ```bash
-cd tools && npm install && node generate-golden.cjs > ../tests/fixtures/golden.json
+cd tools && npm ci && node generate-golden.cjs > ../tests/fixtures/golden.json
 ```
 
-`tools/package.json` pins the exact `arweave` and `arlocal` versions used to produce the
-vectors; bump them deliberately (and review the resulting diff) rather than floating them.
+`tools/package.json` pins the exact `arweave` and `arlocal` versions, and the committed
+`tools/package-lock.json` pins the full resolved transitive tree. Use `npm ci` (not
+`npm install`) so regeneration installs exactly the locked versions — a fresh
+`npm install` can drift transitive deps and produce different vectors. Bump the pins
+deliberately (and review the resulting diff) rather than floating them.
 
 ## ArLocal integration round-trip
 

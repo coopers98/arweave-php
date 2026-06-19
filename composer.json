@@ -14,9 +14,10 @@
         "psr/http-message": "^1.0 || ^2.0"
     },
     "require-dev": {
-        "pestphp/pest": "^3.8",
         "guzzlehttp/guzzle": "^7.8",
-        "nyholm/psr7": "^1.8"
+        "laravel/pint": "^1.0",
+        "nyholm/psr7": "^1.8",
+        "pestphp/pest": "^3.8"
     },
     "suggest": {
         "guzzlehttp/guzzle": "PSR-18 client + PSR-17 factories for ArweaveClient (auto-discovered if installed)",
@@ -40,6 +41,11 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
+    },
+    "scripts": {
+        "lint": "pint --test",
+        "lint:fix": "pint",
+        "test": "pest --testsuite Unit"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

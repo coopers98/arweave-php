@@ -1,10 +1,10 @@
 // Generates golden.json from arweave-js — the reference native-L1 implementation.
 //
-// Dev-only: arweave-js is NOT a runtime dependency of agentimprint/arweave-php. Run
+// Dev-only: arweave-js is NOT a runtime dependency of coopers98/arweave-php. Run
 // once to (re)capture fixtures; the PHP parity suite asserts byte-for-byte equality
 // against these values (this is the package's correctness gate before any mainnet use):
 //
-//   cd packages/arweave-php/tools && npm install && node generate-golden.cjs > ../tests/fixtures/golden.json
+//   cd tools && npm ci && node generate-golden.cjs > ../tests/fixtures/golden.json
 //
 // Only PUBLIC material is emitted (owner modulus, signatures, ids, serialized JSON).
 // The ephemeral RSA private key used to sign is generated here and discarded — it is

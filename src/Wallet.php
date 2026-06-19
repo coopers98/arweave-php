@@ -30,7 +30,7 @@ final class Wallet implements SignerInterface
     private const REQUIRED_JWK_FIELDS = ['n', 'e', 'd', 'p', 'q', 'dp', 'dq', 'qi'];
 
     /** @param array<string, mixed> $jwk decoded Arweave RSA JWK ({kty:"RSA", n,e,d,p,q,dp,dq,qi}) */
-    public function __construct(array $jwk)
+    public function __construct(#[\SensitiveParameter] array $jwk)
     {
         if (($jwk['kty'] ?? null) !== 'RSA') {
             throw new ArweaveException('Wallet JWK must declare "kty":"RSA".');
